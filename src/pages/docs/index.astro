@@ -1,0 +1,311 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/global.css';
+
+const allDocs = await getCollection('docs', ({ data }) => {
+  return import.meta.env.PROD ? data.draft !== true : true;
+});
+
+const sortedDocs = allDocs.sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const allTags = [...new Set(sortedDocs.flatMap((doc) => doc.data.tags))].sort();
+
+const docsByYear = sortedDocs.reduce(
+  (acc, doc) => {
+    const year = doc.data.pubDate.getFullYear();
+    (acc[year] ??= []).push(doc);
+    return acc;
+  },
+  {} as Record<number, typeof sortedDocs>
+);
+
+const years = Object.keys(docsByYear)
+  .map(Number)
+  .sort((a, b) => b - a);
+---
+
+<BaseLayout title="Knowledge Docs">
+  <div class="page-top"></div>
+  <div class="container page-container">
+    <div class="page-header animate-in">
+      <h1 class="page-title">Knowledge Base</h1>
+      <p class="page-desc">Notes, tutorials, and deep dives on software engineering topics.</p>
+    </div>
+
+    <div class="filter-bar glass animate-in">
+      <div class="filter-tags" id="tag-filter">
+        <button class="filter-tag active" data-tag="all">All</button>
+        {allTags.map((tag) => (
+          <button class="filter-tag" data-tag={tag}>{tag}</button>
+        ))}
+      </div>
+    </div>
+
+    <div class="timeline" id="timeline">
+      {years.map((year) => (
+        <div class="timeline-year" data-year={year}>
+          <div class="year-label animate-in">
+            <span class="year-text">{year}</span>
+            <span class="year-count">{docsByYear[year].length} posts</span>
+          </div>
+          <div class="year-docs">
+            {docsByYear[year].map((doc) => (
+              <a
+                href={`/docs/${doc.id}/`}
+                class="glass-card timeline-card animate-in"
+                data-tags={doc.data.tags.join(',')}
+              >
+                <div class="card-date">
+                  <span class="date-dot"></span>
+                  <time datetime={doc.data.pubDate.toISOString()}>
+                    {doc.data.pubDate.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}
+                  </time>
+                </div>
+                <div class="card-body">
+                  <h3 class="card-title">{doc.data.title}</h3>
+                  <p class="card-desc">{doc.data.description}</p>
+                  <div class="card-tags">
+                    {doc.data.tags.map((t) => (
+                      <span class="tag">{t}</span>
+                    ))}
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {sortedDocs.length === 0 && (
+      <div class="empty-state glass animate-in">
+        <p>No documents yet. Add Markdown files to <code>src/content/docs/</code> to get started.</p>
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<script>
+  const tagFilter = document.getElementById('tag-filter');
+  const cards = document.querySelectorAll('.timeline-card');
+  const yearSections = document.querySelectorAll('.timeline-year');
+
+  tagFilter?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('.filter-tag') as HTMLElement | null;
+    if (!btn) return;
+
+    tagFilter.querySelectorAll('.filter-tag').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const tag = btn.dataset.tag;
+
+    cards.forEach((card) => {
+      const cardTags = (card as HTMLElement).dataset.tags?.split(',') || [];
+      const show = tag === 'all' || cardTags.includes(tag!);
+      (card as HTMLElement).style.display = show ? '' : 'none';
+    });
+
+    yearSections.forEach((section) => {
+      const visibleCards = section.querySelectorAll('.timeline-card:not([style*="display: none"])');
+      (section as HTMLElement).style.display = visibleCards.length > 0 ? '' : 'none';
+    });
+  });
+</script>
+
+<style>
+  .page-top {
+    height: var(--nav-height);
+  }
+
+  .page-container {
+    padding-top: 3rem;
+    padding-bottom: 4rem;
+  }
+
+  .page-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .page-title {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-desc {
+    color: var(--text-tertiary);
+    font-size: 1rem;
+  }
+
+  .filter-bar {
+    padding: 0.75rem 1rem;
+    margin-bottom: 3rem;
+    overflow-x: auto;
+  }
+
+  .filter-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+  }
+
+  .filter-tag {
+    padding: 0.35rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    font-family: inherit;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all var(--transition-fast);
+  }
+
+  .filter-tag:hover {
+    color: var(--text-primary);
+    background: var(--glass-bg);
+  }
+
+  .filter-tag.active {
+    color: white;
+    background: rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+
+  .timeline {
+    position: relative;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--glass-border), transparent);
+  }
+
+  .timeline-year {
+    margin-bottom: 3rem;
+  }
+
+  .year-label {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding-left: 28px;
+  }
+
+  .year-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .year-count {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+  }
+
+  .year-docs {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .timeline-card {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+    cursor: pointer;
+  }
+
+  .card-date {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    min-width: 80px;
+  }
+
+  .date-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--bg-primary);
+    border: 2px solid var(--accent-purple);
+    flex-shrink: 0;
+    z-index: 1;
+    transition: all var(--transition-fast);
+  }
+
+  .timeline-card:hover .date-dot {
+    background: var(--accent-purple);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+  }
+
+  .card-date time {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .card-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .card-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    letter-spacing: -0.01em;
+  }
+
+  .card-desc {
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .empty-state {
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-tertiary);
+  }
+
+  .empty-state code {
+    font-size: 0.85em;
+    padding: 0.2em 0.5em;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  @media (max-width: 640px) {
+    .timeline-card {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .card-date { min-width: unset; }
+  }
+</style>

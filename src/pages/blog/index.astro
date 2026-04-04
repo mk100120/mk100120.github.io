@@ -1,0 +1,198 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/global.css';
+
+const allPosts = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? data.draft !== true : true;
+});
+
+const sortedPosts = allPosts.sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const allTags = [...new Set(sortedPosts.flatMap((p) => p.data.tags))].sort();
+---
+
+<BaseLayout title="Blog">
+  <div class="page-top"></div>
+  <div class="container page-container">
+    <div class="page-header animate-in">
+      <h1 class="page-title">Blog</h1>
+      <p class="page-desc">想法、记录、和一些不成体系的思考。</p>
+    </div>
+
+    <div class="filter-bar glass animate-in">
+      <div class="filter-tags" id="tag-filter">
+        <button class="filter-tag active" data-tag="all">All</button>
+        {allTags.map((tag) => (
+          <button class="filter-tag" data-tag={tag}>{tag}</button>
+        ))}
+      </div>
+    </div>
+
+    <div class="post-list" id="post-list">
+      {sortedPosts.map((post) => (
+        <a
+          href={`/blog/${post.id}/`}
+          class="glass-card post-card animate-in"
+          data-tags={post.data.tags.join(',')}
+        >
+          <div class="post-meta">
+            <time datetime={post.data.pubDate.toISOString()}>
+              {post.data.pubDate.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
+            </time>
+          </div>
+          <h2 class="post-title">{post.data.title}</h2>
+          <p class="post-desc">{post.data.description}</p>
+          <div class="post-tags">
+            {post.data.tags.map((t) => (
+              <span class="tag">{t}</span>
+            ))}
+          </div>
+        </a>
+      ))}
+    </div>
+
+    {sortedPosts.length === 0 && (
+      <div class="empty-state glass animate-in">
+        <p>还没有博客文章。在 <code>src/content/blog/</code> 中添加 Markdown 文件即可。</p>
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<script>
+  const tagFilter = document.getElementById('tag-filter');
+  const cards = document.querySelectorAll('.post-card');
+
+  tagFilter?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('.filter-tag') as HTMLElement | null;
+    if (!btn) return;
+
+    tagFilter.querySelectorAll('.filter-tag').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const tag = btn.dataset.tag;
+    cards.forEach((card) => {
+      const cardTags = (card as HTMLElement).dataset.tags?.split(',') || [];
+      const show = tag === 'all' || cardTags.includes(tag!);
+      (card as HTMLElement).style.display = show ? '' : 'none';
+    });
+  });
+</script>
+
+<style>
+  .page-top { height: var(--nav-height); }
+
+  .page-container {
+    padding-top: 3rem;
+    padding-bottom: 4rem;
+  }
+
+  .page-header { margin-bottom: 2.5rem; }
+
+  .page-title {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-desc {
+    color: var(--text-tertiary);
+    font-size: 1rem;
+  }
+
+  .filter-bar {
+    padding: 0.75rem 1rem;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+  }
+
+  .filter-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+  }
+
+  .filter-tag {
+    padding: 0.35rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    font-family: inherit;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all var(--transition-fast);
+  }
+
+  .filter-tag:hover {
+    color: var(--text-primary);
+    background: var(--glass-bg);
+  }
+
+  .filter-tag.active {
+    color: white;
+    background: rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+
+  .post-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .post-card {
+    display: block;
+    cursor: pointer;
+  }
+
+  .post-meta {
+    margin-bottom: 0.5rem;
+  }
+
+  .post-meta time {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  .post-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+  }
+
+  .post-desc {
+    font-size: 0.9rem;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
+  }
+
+  .post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .empty-state {
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-tertiary);
+  }
+
+  .empty-state code {
+    font-size: 0.85em;
+    padding: 0.2em 0.5em;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.08);
+  }
+</style>

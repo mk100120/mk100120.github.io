@@ -1,0 +1,147 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/global.css';
+
+const resources = [
+  {
+    category: 'Frameworks & Tools',
+    items: [
+      { name: 'Astro', url: 'https://astro.build', desc: '内容驱动的静态站点生成器，零 JS 默认输出' },
+      { name: 'Vite', url: 'https://vitejs.dev', desc: '下一代前端构建工具，极速 HMR' },
+      { name: 'Tailwind CSS', url: 'https://tailwindcss.com', desc: 'Utility-first CSS 框架' },
+      { name: 'shadcn/ui', url: 'https://ui.shadcn.com', desc: '可复制粘贴的 React 组件库' },
+    ],
+  },
+  {
+    category: 'Development',
+    items: [
+      { name: 'GitHub', url: 'https://github.com', desc: '代码托管与协作平台' },
+      { name: 'Docker', url: 'https://www.docker.com', desc: '容器化部署标准' },
+      { name: 'PostgreSQL', url: 'https://www.postgresql.org', desc: '最强大的开源关系型数据库' },
+      { name: 'Spring Boot', url: 'https://spring.io/projects/spring-boot', desc: 'Java 生产级应用框架' },
+    ],
+  },
+  {
+    category: 'Learning',
+    items: [
+      { name: 'MDN Web Docs', url: 'https://developer.mozilla.org', desc: 'Web 技术权威文档' },
+      { name: 'The Pragmatic Engineer', url: 'https://blog.pragmaticengineer.com', desc: '软件工程深度分析' },
+      { name: 'ByteByteGo', url: 'https://bytebytego.com', desc: '系统设计学习平台' },
+      { name: 'Hacker News', url: 'https://news.ycombinator.com', desc: '技术新闻与讨论社区' },
+    ],
+  },
+  {
+    category: 'Productivity',
+    items: [
+      { name: 'Raycast', url: 'https://www.raycast.com', desc: 'macOS 效率启动器，替代 Spotlight' },
+      { name: 'Obsidian', url: 'https://obsidian.md', desc: '本地优先的知识管理工具' },
+      { name: 'Arc Browser', url: 'https://arc.net', desc: '重新定义浏览器体验' },
+      { name: 'Warp', url: 'https://www.warp.dev', desc: '现代化终端，内置 AI 辅助' },
+    ],
+  },
+];
+---
+
+<BaseLayout title="Resources">
+  <div class="page-top"></div>
+  <div class="container page-container">
+    <div class="page-header animate-in">
+      <h1 class="page-title">Resources</h1>
+      <p class="page-desc">我常用的工具、框架和学习资源。</p>
+    </div>
+
+    {resources.map((group) => (
+      <section class="resource-section">
+        <h2 class="section-label animate-in">{group.category}</h2>
+        <div class="resource-grid">
+          {group.items.map((item) => (
+            <a href={item.url} class="glass-card resource-card animate-in" target="_blank" rel="noopener">
+              <h3 class="resource-name">
+                {item.name}
+                <span class="external-icon">↗</span>
+              </h3>
+              <p class="resource-desc">{item.desc}</p>
+            </a>
+          ))}
+        </div>
+      </section>
+    ))}
+  </div>
+</BaseLayout>
+
+<style>
+  .page-top { height: var(--nav-height); }
+
+  .page-container {
+    padding-top: 3rem;
+    padding-bottom: 4rem;
+  }
+
+  .page-header { margin-bottom: 3rem; }
+
+  .page-title {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-desc {
+    color: var(--text-tertiary);
+    font-size: 1rem;
+  }
+
+  .resource-section {
+    margin-bottom: 3rem;
+  }
+
+  .section-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent-purple);
+    margin-bottom: 1rem;
+  }
+
+  .resource-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+
+  .resource-card {
+    display: block;
+    cursor: pointer;
+  }
+
+  .resource-name {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .external-icon {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+
+  .resource-card:hover .external-icon {
+    opacity: 1;
+  }
+
+  .resource-desc {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 640px) {
+    .resource-grid { grid-template-columns: 1fr; }
+  }
+</style>

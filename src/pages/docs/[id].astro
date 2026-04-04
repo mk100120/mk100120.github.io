@@ -1,0 +1,196 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/global.css';
+
+export async function getStaticPaths() {
+  const docs = await getCollection('docs', ({ data }) => !data.draft);
+  return docs.map((entry) => ({
+    params: { id: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+
+const tocHeadings = headings.filter((h) => h.depth <= 3);
+---
+
+<BaseLayout title={entry.data.title} description={entry.data.description}>
+  <div class="page-top"></div>
+  <div class="container doc-layout">
+    <article class="doc-article">
+      <header class="doc-header animate-in">
+        <div class="doc-meta">
+          <time datetime={entry.data.pubDate.toISOString()}>
+            {entry.data.pubDate.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </time>
+          {entry.data.updatedDate && (
+            <span class="updated">
+              · Updated {entry.data.updatedDate.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' })}
+            </span>
+          )}
+        </div>
+        <h1 class="doc-page-title">{entry.data.title}</h1>
+        <p class="doc-page-desc">{entry.data.description}</p>
+        <div class="doc-tag-list">
+          {entry.data.tags.map((tag) => (
+            <a href={`/tags/${tag}/`} class="tag">{tag}</a>
+          ))}
+        </div>
+      </header>
+
+      <div class="prose animate-in">
+        <Content />
+      </div>
+
+      <footer class="doc-footer animate-in">
+        <a href="/docs/" class="back-link">← Back to all docs</a>
+      </footer>
+    </article>
+
+    {tocHeadings.length > 0 && (
+      <aside class="toc-sidebar">
+        <div class="toc glass">
+          <h4 class="toc-title">On this page</h4>
+          <nav>
+            <ul class="toc-list">
+              {tocHeadings.map((h) => (
+                <li class={`toc-item toc-depth-${h.depth}`}>
+                  <a href={`#${h.slug}`} class="toc-link">{h.text}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+      </aside>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .page-top {
+    height: var(--nav-height);
+  }
+
+  .doc-layout {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 3rem;
+    padding-top: 3rem;
+    padding-bottom: 4rem;
+    align-items: start;
+  }
+
+  .doc-article {
+    min-width: 0;
+  }
+
+  .doc-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .doc-meta {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    margin-bottom: 1rem;
+    font-weight: 500;
+  }
+
+  .updated {
+    color: var(--text-tertiary);
+  }
+
+  .doc-page-title {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+  }
+
+  .doc-page-desc {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+
+  .doc-tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .doc-footer {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--glass-border);
+  }
+
+  .back-link {
+    font-size: 0.9rem;
+    color: var(--accent-purple);
+    font-weight: 500;
+    transition: opacity var(--transition-fast);
+  }
+
+  .back-link:hover { opacity: 0.8; }
+
+  .toc-sidebar {
+    position: sticky;
+    top: calc(var(--nav-height) + 2rem);
+  }
+
+  .toc {
+    padding: 1.25rem;
+  }
+
+  .toc-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: 0.75rem;
+  }
+
+  .toc-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .toc-item {
+    margin-bottom: 0.25rem;
+  }
+
+  .toc-depth-2 { padding-left: 0; }
+  .toc-depth-3 { padding-left: 0.75rem; }
+
+  .toc-link {
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+    display: block;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+    line-height: 1.4;
+  }
+
+  .toc-link:hover {
+    color: var(--text-primary);
+    background: var(--glass-bg);
+  }
+
+  @media (max-width: 900px) {
+    .doc-layout {
+      grid-template-columns: 1fr;
+    }
+    .toc-sidebar {
+      display: none;
+    }
+  }
+</style>

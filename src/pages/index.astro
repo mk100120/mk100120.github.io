@@ -1,0 +1,320 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/global.css';
+
+const allDocs = await getCollection('docs', ({ data }) => {
+  return import.meta.env.PROD ? data.draft !== true : true;
+});
+
+const recentDocs = allDocs
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 4);
+
+const allTags = [...new Set(allDocs.flatMap((doc) => doc.data.tags))];
+
+const skills = [
+  { name: 'TypeScript', color: '#3178c6' },
+  { name: 'Java', color: '#ed8b00' },
+  { name: 'React', color: '#61dafb' },
+  { name: 'Astro', color: '#bc52ee' },
+  { name: 'Node.js', color: '#339933' },
+  { name: 'Docker', color: '#2496ed' },
+  { name: 'PostgreSQL', color: '#4169e1' },
+  { name: 'Git', color: '#f05032' },
+];
+---
+
+<BaseLayout title="Kenny's Space">
+  <section class="hero">
+    <div class="container hero-content">
+      <div class="hero-badge animate-in">Open to collaborate</div>
+      <h1 class="hero-title animate-in">
+        Hi, I'm <span class="gradient-text">Kenny</span>
+      </h1>
+      <p class="hero-subtitle animate-in">
+        Software Engineer · Building things that matter
+      </p>
+      <p class="hero-desc animate-in">
+        I write about software engineering, architecture patterns, and lessons learned from building production systems.
+      </p>
+      <div class="hero-actions animate-in">
+        <a href="/docs/" class="btn btn-primary">Browse Docs</a>
+        <a href="https://github.com/mk100120" class="btn btn-ghost" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title animate-in">Skills & Tools</h2>
+      <div class="skills-grid">
+        {skills.map((skill) => (
+          <div class="skill-chip animate-in" style={`--chip-color: ${skill.color}`}>
+            <span class="skill-dot"></span>
+            {skill.name}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {recentDocs.length > 0 && (
+    <section class="section">
+      <div class="container">
+        <div class="section-header animate-in">
+          <h2 class="section-title">Recent Docs</h2>
+          <a href="/docs/" class="section-link">View all →</a>
+        </div>
+        <div class="docs-grid">
+          {recentDocs.map((doc) => (
+            <a href={`/docs/${doc.id}/`} class="glass-card doc-card animate-in">
+              <div class="doc-meta">
+                <time datetime={doc.data.pubDate.toISOString()}>
+                  {doc.data.pubDate.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' })}
+                </time>
+              </div>
+              <h3 class="doc-title">{doc.data.title}</h3>
+              <p class="doc-desc">{doc.data.description}</p>
+              <div class="doc-tags">
+                {doc.data.tags.map((t) => (
+                  <span class="tag">{t}</span>
+                ))}
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  {allTags.length > 0 && (
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title animate-in">Explore by Tag</h2>
+        <div class="tag-cloud animate-in">
+          {allTags.map((tag) => (
+            <a href={`/tags/${tag}/`} class="tag tag-lg">{tag}</a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+</BaseLayout>
+
+<style>
+  .hero {
+    min-height: 85vh;
+    display: flex;
+    align-items: center;
+    padding-top: calc(var(--nav-height) + 2rem);
+  }
+
+  .hero-content {
+    max-width: 680px;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    padding: 0.35rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: var(--radius-full);
+    color: rgba(16, 185, 129, 0.9);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-title {
+    font-size: clamp(2.8rem, 7vw, 4.5rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-desc {
+    font-size: 1rem;
+    color: var(--text-tertiary);
+    max-width: 520px;
+    margin-bottom: 2rem;
+    line-height: 1.7;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.65rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+  }
+
+  .btn-primary {
+    background: var(--accent-purple);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: hsla(260, 80%, 60%, 1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--glass-border);
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--glass-border-hover);
+    color: var(--text-primary);
+    background: var(--glass-bg);
+  }
+
+  .section {
+    padding: 4rem 0;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-header .section-title {
+    margin-bottom: 0;
+  }
+
+  .section-link {
+    font-size: 0.9rem;
+    color: var(--accent-purple);
+    font-weight: 500;
+    transition: opacity var(--transition-fast);
+  }
+
+  .section-link:hover { opacity: 0.8; }
+
+  .skills-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .skill-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-full);
+    transition: all var(--transition-fast);
+  }
+
+  .skill-chip:hover {
+    border-color: var(--chip-color, var(--glass-border-hover));
+    background: var(--glass-bg-hover);
+  }
+
+  .skill-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--chip-color, var(--accent-purple));
+  }
+
+  .docs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .doc-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    cursor: pointer;
+  }
+
+  .doc-meta time {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  .doc-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.4;
+  }
+
+  .doc-desc {
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .doc-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: auto;
+  }
+
+  .tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .tag-lg {
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 640px) {
+    .hero { min-height: 75vh; }
+    .hero-actions { flex-direction: column; }
+    .docs-grid { grid-template-columns: 1fr; }
+  }
+</style>

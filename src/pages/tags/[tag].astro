@@ -1,0 +1,143 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/global.css';
+
+export async function getStaticPaths() {
+  const allDocs = await getCollection('docs', ({ data }) => !data.draft);
+  const uniqueTags = [...new Set(allDocs.flatMap((doc) => doc.data.tags))];
+
+  return uniqueTags.map((tag) => {
+    const filteredDocs = allDocs
+      .filter((doc) => doc.data.tags.includes(tag))
+      .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+    return {
+      params: { tag },
+      props: { docs: filteredDocs, tag },
+    };
+  });
+}
+
+const { docs, tag } = Astro.props;
+---
+
+<BaseLayout title={`#${tag}`}>
+  <div class="page-top"></div>
+  <div class="container page-container">
+    <div class="page-header animate-in">
+      <a href="/docs/" class="back-link">← Back to docs</a>
+      <h1 class="page-title">
+        <span class="tag-hash">#</span>{tag}
+      </h1>
+      <p class="page-desc">{docs.length} {docs.length === 1 ? 'document' : 'documents'} tagged with "{tag}"</p>
+    </div>
+
+    <div class="doc-list">
+      {docs.map((doc) => (
+        <a href={`/docs/${doc.id}/`} class="glass-card doc-item animate-in">
+          <div class="doc-item-meta">
+            <time datetime={doc.data.pubDate.toISOString()}>
+              {doc.data.pubDate.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' })}
+            </time>
+          </div>
+          <h3 class="doc-item-title">{doc.data.title}</h3>
+          <p class="doc-item-desc">{doc.data.description}</p>
+          <div class="doc-item-tags">
+            {doc.data.tags.map((t) => (
+              <span class:list={['tag', { 'tag-active': t === tag }]}>{t}</span>
+            ))}
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page-top {
+    height: var(--nav-height);
+  }
+
+  .page-container {
+    padding-top: 3rem;
+    padding-bottom: 4rem;
+  }
+
+  .page-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .back-link {
+    font-size: 0.85rem;
+    color: var(--accent-purple);
+    font-weight: 500;
+    display: inline-block;
+    margin-bottom: 1rem;
+    transition: opacity var(--transition-fast);
+  }
+
+  .back-link:hover { opacity: 0.8; }
+
+  .page-title {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+  }
+
+  .tag-hash {
+    color: var(--accent-purple);
+    margin-right: 0.15rem;
+  }
+
+  .page-desc {
+    color: var(--text-tertiary);
+    font-size: 1rem;
+  }
+
+  .doc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .doc-item {
+    display: block;
+    cursor: pointer;
+  }
+
+  .doc-item-meta {
+    margin-bottom: 0.5rem;
+  }
+
+  .doc-item-meta time {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  .doc-item-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.35rem;
+  }
+
+  .doc-item-desc {
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
+  }
+
+  .doc-item-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .tag-active {
+    background: rgba(139, 92, 246, 0.25);
+    border-color: rgba(139, 92, 246, 0.4);
+  }
+</style>
