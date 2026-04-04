@@ -337,11 +337,11 @@ const heroWords = "Engineering Tomorrow's Digital Frontier".split(' ');
       </div>
 
       <div class="timeline">
+        <div class="timeline-center-line"></div>
         {experience.map((exp, i) => (
-          <div class="timeline-item scroll-fade-up" style={`--stagger-delay: ${i * 150}`}>
-            <div class="timeline-marker">
+          <div class={`timeline-item ${i % 2 === 0 ? 'tl-left' : 'tl-right'} scroll-fade-up`} style={`--stagger-delay: ${i * 150}`}>
+            <div class="timeline-dot-wrap">
               <div class={`timeline-dot ${exp.current ? 'dot-current' : ''}`}></div>
-              {i < experience.length - 1 && <div class="timeline-line"></div>}
             </div>
             <div class="timeline-content glass-card card-glow">
               {exp.current && <span class="current-badge">Current Position</span>}
@@ -829,21 +829,53 @@ const heroWords = "Engineering Tomorrow's Digital Frontier".split(' ');
   .blog-card-desc { font-size: 0.82rem; color: var(--text-tertiary); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .blog-card-tags { display: flex; gap: 0.35rem; margin-top: auto; }
 
-  .timeline { position: relative; padding-left: 2.5rem; }
-  .timeline::before {
-    content: '';
+  .timeline {
+    position: relative;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .timeline-center-line {
     position: absolute;
-    left: 9px;
+    left: 50%;
     top: 0;
     bottom: 0;
     width: 2px;
-    background: linear-gradient(to bottom, var(--purple-500), var(--glass-border) 20%, var(--glass-border) 80%, transparent);
+    transform: translateX(-50%);
+    background: linear-gradient(to bottom, var(--purple-500), var(--glass-border) 15%, var(--glass-border) 85%, transparent);
   }
-  .timeline-item { display: flex; gap: 1.5rem; margin-bottom: 2.5rem; position: relative; }
-  .timeline-marker { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 20px; position: absolute; left: -2.5rem; }
+  .timeline-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 3rem;
+    position: relative;
+    width: 50%;
+  }
+  .timeline-item.tl-left {
+    padding-right: 3rem;
+    justify-content: flex-end;
+    align-self: flex-start;
+  }
+  .timeline-item.tl-right {
+    padding-left: 3rem;
+    margin-left: 50%;
+  }
+  .timeline-dot-wrap {
+    position: absolute;
+    top: 2rem;
+    z-index: 2;
+  }
+  .tl-left .timeline-dot-wrap {
+    right: -9px;
+  }
+  .tl-right .timeline-dot-wrap {
+    left: -9px;
+  }
   .timeline-dot {
-    width: 18px; height: 18px; border-radius: 50%;
-    background: var(--bg-base); border: 3px solid var(--purple-500); flex-shrink: 0; z-index: 1;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--bg-base);
+    border: 3px solid var(--purple-500);
     transition: all 0.3s ease;
   }
   .dot-current {
@@ -855,8 +887,9 @@ const heroWords = "Engineering Tomorrow's Digital Frontier".split(' ');
     0%, 100% { box-shadow: 0 0 16px rgba(168,85,247,0.6), 0 0 32px rgba(168,85,247,0.3); }
     50% { box-shadow: 0 0 24px rgba(168,85,247,0.8), 0 0 48px rgba(168,85,247,0.4); }
   }
-  .timeline-line { width: 2px; flex: 1; background: var(--glass-border); margin-top: 4px; display: none; }
-  .timeline-content { flex: 1; }
+  .timeline-content {
+    width: 100%;
+  }
   .current-badge {
     display: inline-block;
     padding: 0.2rem 0.7rem; margin-bottom: 0.5rem;
@@ -968,6 +1001,10 @@ const heroWords = "Engineering Tomorrow's Digital Frontier".split(' ');
     .blog-grid { grid-template-columns: 1fr; }
     .skills-bars { grid-template-columns: 1fr; }
     .section-header-row { flex-direction: column; align-items: flex-start; }
+    .timeline-center-line { left: 16px; }
+    .timeline-item { width: 100%; margin-left: 0 !important; padding-left: 2.75rem !important; padding-right: 0 !important; }
+    .tl-left .timeline-dot-wrap,
+    .tl-right .timeline-dot-wrap { left: 7px; right: auto; }
     .timeline { padding-left: 0; }
     .timeline-marker { display: none; }
   }
