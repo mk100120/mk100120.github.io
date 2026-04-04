@@ -70,33 +70,15 @@ const heroWords = [...greetingWords, ...headlineWords];
         </a>
       </div>
 
-      <div class="hero-socials scroll-fade-up scroll-fade-up-delay-500">
-        {socials.map((s) => (
-          s.qr ? (
-            <div class="social-icon-wrap">
-              <button class="social-icon" title={s.name} aria-label={s.name}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d={s.icon}/></svg>
-              </button>
-              <div class="qr-popover">
-                <div class="qr-popover-inner glass-strong">
-                  <div class={`qr-placeholder qr-${s.qr}`}>
-                    <img src={s.qrImage} alt={`${s.name} QR Code`} loading="lazy" />
-                  </div>
-                  <span class="qr-label">{s.name === 'WeChat' ? 'Scan to add WeChat' : 'Scan to follow on Douyin'}</span>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <a href={s.url} class="social-icon" target="_blank" rel="noopener" title={s.name}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d={s.icon}/></svg>
-            </a>
-          )
-        ))}
-      </div>
-
       <div class="scroll-hint scroll-fade-up scroll-fade-up-delay-500">
-        <span>Scroll to explore</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        <button class="scroll-indicator" onclick="document.getElementById('about')?.scrollIntoView({behavior:'smooth'})">
+          <div class="scroll-arrows">
+            <span class="scroll-arrow"></span>
+            <span class="scroll-arrow"></span>
+            <span class="scroll-arrow"></span>
+          </div>
+          <span class="scroll-label">Scroll to explore</span>
+        </button>
       </div>
     </div>
   </section>
@@ -144,6 +126,40 @@ const heroWords = [...greetingWords, ...headlineWords];
               <div class="p-stat"><span class="p-stat-value">{about.yearsExperience}</span><span class="p-stat-label">Years Experience</span></div>
               <div class="p-stat"><span class="p-stat-value">{about.projectsCompleted}</span><span class="p-stat-label">Projects Completed</span></div>
               <div class="p-stat"><span class="p-stat-value">{about.happyClients}</span><span class="p-stat-label">Happy Clients</span></div>
+            </div>
+
+            <div class="profile-divider"></div>
+
+            <div class="profile-contact">
+              <h5 class="profile-contact-title">Connect With Me</h5>
+              <div class="profile-socials">
+                {socials.map((s) => (
+                  s.qr ? (
+                    <button
+                      class="profile-social-btn"
+                      title={s.name}
+                      aria-label={s.name}
+                      data-qr={s.qr}
+                      data-qr-image={s.qrImage}
+                      data-qr-label={s.name === 'WeChat' ? 'Scan to add WeChat' : 'Scan to follow on Douyin'}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={s.icon}/></svg>
+                    </button>
+                  ) : (
+                    <a href={s.url} class="profile-social-btn" target="_blank" rel="noopener" title={s.name}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={s.icon}/></svg>
+                    </a>
+                  )
+                ))}
+              </div>
+              <div class="profile-qr-area" id="profile-qr-area">
+                <div class="profile-qr-inner">
+                  <div class="profile-qr-img">
+                    <img id="profile-qr-img" src="" alt="QR Code" />
+                  </div>
+                  <span class="profile-qr-text" id="profile-qr-text"></span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -386,6 +402,45 @@ const heroWords = [...greetingWords, ...headlineWords];
   </section>
 
   <script>
+    const qrArea = document.getElementById('profile-qr-area');
+    const qrImg = document.getElementById('profile-qr-img') as HTMLImageElement | null;
+    const qrText = document.getElementById('profile-qr-text');
+    let activeQr: string | null = null;
+
+    document.querySelectorAll('.profile-social-btn[data-qr]').forEach((btn) => {
+      const el = btn as HTMLElement;
+      const show = () => {
+        const qr = el.dataset.qr!;
+        if (activeQr === qr) return;
+        activeQr = qr;
+        document.querySelectorAll('.profile-social-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        if (qrImg) {
+          qrImg.src = el.dataset.qrImage || '';
+          qrImg.alt = el.dataset.qrLabel || 'QR Code';
+          const isDouyin = qr === 'douyin';
+          qrImg.style.objectPosition = isDouyin ? 'center 28%' : 'center 55%';
+          qrImg.style.transform = isDouyin ? 'scale(1.5)' : 'scale(1.15)';
+        }
+        if (qrText) qrText.textContent = el.dataset.qrLabel || '';
+        qrArea?.classList.add('open');
+      };
+      const hide = () => {
+        activeQr = null;
+        el.classList.remove('active');
+        qrArea?.classList.remove('open');
+      };
+      el.addEventListener('mouseenter', show);
+      el.addEventListener('mouseleave', hide);
+      el.addEventListener('click', () => {
+        if (qrArea?.classList.contains('open') && activeQr === el.dataset.qr) {
+          hide();
+        } else {
+          show();
+        }
+      });
+    });
+
     const skillObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -469,91 +524,6 @@ const heroWords = [...greetingWords, ...headlineWords];
     50% { opacity: 0.5; box-shadow: 0 0 16px rgba(74, 222, 128, 0.3); }
   }
 
-  .social-icon-wrap {
-    position: relative;
-    display: inline-flex;
-  }
-
-  .social-icon-wrap .social-icon {
-    cursor: pointer;
-    border: none;
-    font-family: inherit;
-  }
-
-  .qr-popover {
-    position: absolute;
-    top: calc(100% + 14px);
-    left: 50%;
-    transform: translateX(-50%) translateY(-8px) scale(0.95);
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    z-index: 50;
-    filter: blur(4px);
-  }
-
-  .social-icon-wrap:hover .qr-popover {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
-    pointer-events: auto;
-    filter: blur(0);
-  }
-
-  .qr-popover-inner {
-    padding: 0.75rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    white-space: nowrap;
-    border-radius: var(--radius-xl) !important;
-    box-shadow:
-      0 16px 48px rgba(0, 0, 0, 0.5),
-      0 0 0 1px rgba(255, 255, 255, 0.06);
-    position: relative;
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-  }
-
-  .qr-popover-inner::after {
-    content: '';
-    position: absolute;
-    top: -6px;
-    left: 50%;
-    transform: translateX(-50%) rotate(45deg);
-    width: 12px;
-    height: 12px;
-    background: var(--glass-bg-strong);
-    border-left: 1px solid var(--glass-border);
-    border-top: 1px solid var(--glass-border);
-  }
-
-  .qr-placeholder {
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    line-height: 0;
-    background: white;
-    padding: 6px;
-    width: 220px;
-    height: 220px;
-  }
-
-  .qr-placeholder img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center 75%;
-    border-radius: 6px;
-  }
-
-  .qr-label {
-    font-size: 0.72rem;
-    color: var(--text-secondary);
-    font-weight: 500;
-    padding: 0 0.25rem;
-  }
-
   .hero {
     min-height: 100vh;
     display: flex;
@@ -592,34 +562,77 @@ const heroWords = [...greetingWords, ...headlineWords];
     color: var(--text-secondary);
   }
   .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
-  .hero-socials { display: flex; gap: 0.75rem; margin-bottom: 3rem; }
-  .social-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-md);
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    color: var(--text-secondary);
-    transition: all var(--transition-fast);
-  }
-  .social-icon:hover {
-    color: var(--purple-400);
-    border-color: rgba(168,85,247,0.3);
-    background: rgba(168,85,247,0.1);
-    transform: translateY(-2px);
-  }
+
   .scroll-hint {
+    margin-top: 3.5rem;
     display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.75rem;
-    color: var(--text-tertiary);
-    animation: bounce-hint 2s ease-in-out infinite;
+    justify-content: center;
   }
-  @keyframes bounce-hint { 0%,100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+
+  .scroll-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    font-family: inherit;
+    border: none;
+    background: none;
+    padding: 0.75rem 1.5rem;
+  }
+
+  .scroll-indicator:hover .scroll-label {
+    color: var(--text-primary);
+  }
+
+  .scroll-arrows {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    height: 48px;
+    overflow: hidden;
+  }
+
+  .scroll-arrow {
+    display: block;
+    width: 24px;
+    height: 24px;
+    border-right: 2.5px solid var(--purple-400);
+    border-bottom: 2.5px solid var(--purple-400);
+    transform: rotate(45deg);
+    animation: scroll-arrow-fade 2s ease-in-out infinite;
+    opacity: 0;
+    margin-top: -8px;
+  }
+
+  .scroll-arrow:first-child {
+    margin-top: 0;
+  }
+
+  .scroll-arrow:nth-child(1) { animation-delay: 0s; }
+  .scroll-arrow:nth-child(2) { animation-delay: 0.2s; }
+  .scroll-arrow:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes scroll-arrow-fade {
+    0%   { opacity: 0; transform: rotate(45deg) translate(-4px, -4px); }
+    40%  { opacity: 1; }
+    80%  { opacity: 0; transform: rotate(45deg) translate(4px, 4px); }
+    100% { opacity: 0; }
+  }
+
+  .scroll-indicator:hover .scroll-arrow {
+    border-color: var(--purple-400);
+    filter: drop-shadow(0 0 4px rgba(168, 85, 247, 0.5));
+  }
+
+  .scroll-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    letter-spacing: 0.04em;
+    transition: color 0.3s ease;
+  }
 
   .section { padding: 7rem 0; }
   .section-heading {
@@ -648,7 +661,7 @@ const heroWords = [...greetingWords, ...headlineWords];
   }
   .section-link:hover { color: var(--text-primary); }
 
-  .about-grid { display: grid; grid-template-columns: 1fr 360px; gap: 3.5rem; align-items: start; }
+  .about-grid { display: grid; grid-template-columns: 1fr 360px; gap: 3.5rem; align-items: stretch; }
   .about-para { color: var(--text-secondary); line-height: 1.85; margin-bottom: 1.5rem; font-size: 1rem; }
   .about-highlights { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 2.5rem; }
   .highlight-card { padding: 1.75rem !important; }
@@ -665,7 +678,19 @@ const heroWords = [...greetingWords, ...headlineWords];
     flex-shrink: 0;
   }
   .highlight-desc { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; padding-left: 1.2rem; }
-  .profile-card { padding: 2.5rem; text-align: center; }
+
+  .about-sidebar {
+    margin-top: -5.5rem;
+  }
+
+  .profile-card {
+    padding: 2.5rem;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
   .profile-avatar {
     width: 88px; height: 88px; margin: 0 auto 1.25rem;
     border-radius: 50%;
@@ -702,6 +727,96 @@ const heroWords = [...greetingWords, ...headlineWords];
   .p-stat { text-align: center; }
   .p-stat-value { display: block; font-size: 1.5rem; font-weight: 900; color: var(--text-primary); }
   .p-stat-label { font-size: 0.72rem; color: var(--text-tertiary); }
+
+  .profile-divider {
+    width: 100%;
+    height: 1px;
+    background: var(--glass-border);
+    margin: 1.25rem 0;
+  }
+
+  .profile-contact-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    margin-bottom: 0.75rem;
+  }
+
+  .profile-socials {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .profile-social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: var(--glass-bg-light);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.25s ease;
+    text-decoration: none;
+  }
+
+  .profile-social-btn:hover,
+  .profile-social-btn.active {
+    color: var(--purple-400);
+    border-color: rgba(168, 85, 247, 0.3);
+    background: rgba(168, 85, 247, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .profile-qr-area {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+  }
+
+  .profile-qr-area.open {
+    grid-template-rows: 1fr;
+  }
+
+  .profile-qr-inner {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .profile-qr-img {
+    margin-top: 1rem;
+    background: white;
+    border-radius: var(--radius-md);
+    padding: 6px;
+    overflow: hidden;
+  }
+
+  .profile-qr-img img {
+    display: block;
+    width: 220px;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+
+  .profile-qr-text {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    text-align: center;
+    margin-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
 
   .skills-section { margin-bottom: 3rem; }
   .skills-cat-title { font-size: 1.25rem; font-weight: 900; color: var(--text-primary); margin-bottom: 1.5rem; }
@@ -953,6 +1068,7 @@ const heroWords = [...greetingWords, ...headlineWords];
 
   @media (max-width: 900px) {
     .about-grid { grid-template-columns: 1fr; }
+    .about-sidebar { margin-top: 0; }
     .contact-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 640px) {

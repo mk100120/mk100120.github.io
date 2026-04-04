@@ -5,7 +5,7 @@ export const siteConfig = {
   title: 'Kenny | Principal Backend Developer | Portfolio',
   description: 'Personal knowledge base & portfolio',
   avatar: '/header.jpg',
-  heroGreeting: "Hi, I'm",
+  heroGreeting: "Hi, I'm ",
   heroHeadline: "Engineering Tomorrow's Digital Frontier",
   heroRole: 'Full Stack Developer',
   heroDesc: 'Passionate developer creating amazing digital experiences.',
