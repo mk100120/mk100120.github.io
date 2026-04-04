@@ -125,9 +125,10 @@ img { max-width: 100%; height: auto; }
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-2xl);
   transition:
-    border-color var(--transition-normal),
-    background var(--transition-normal),
-    box-shadow var(--transition-normal);
+    border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
 }
 
@@ -145,7 +146,10 @@ img { max-width: 100%; height: auto; }
 .glass-card:hover {
   border-color: rgba(168, 85, 247, 0.3);
   background: var(--glass-bg-hover);
-  box-shadow: 0 0 30px rgba(168, 85, 247, 0.08);
+  box-shadow:
+    0 0 30px rgba(168, 85, 247, 0.08),
+    0 8px 32px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
 }
 
 .glass-card:hover::before {
@@ -161,14 +165,39 @@ img { max-width: 100%; height: auto; }
   position: absolute;
   inset: -1px;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.1), transparent 50%);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(236, 72, 153, 0.15), transparent 60%);
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.5s ease;
   pointer-events: none;
   z-index: -1;
+  filter: blur(2px);
 }
 
 .card-glow:hover::after {
+  opacity: 1;
+}
+
+.hover-border-glow {
+  position: relative;
+}
+
+.hover-border-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.4), rgba(236, 72, 153, 0.2), transparent 50%);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.hover-border-glow:hover::before {
   opacity: 1;
 }
 
@@ -210,6 +239,12 @@ img { max-width: 100%; height: auto; }
   transition: all var(--transition-normal);
   text-decoration: none;
   position: relative;
+  animation: gradient-shift 4s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 .btn-gradient::after {
@@ -219,18 +254,18 @@ img { max-width: 100%; height: auto; }
   border-radius: inherit;
   background: linear-gradient(135deg, var(--purple-600), var(--pink-500));
   filter: blur(14px);
-  opacity: 0;
+  opacity: 0.3;
   z-index: -1;
   transition: opacity 0.3s ease;
 }
 
 .btn-gradient:hover {
-  transform: scale(1.05);
-  background-position: 100% 0;
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 30px rgba(168, 85, 247, 0.3);
 }
 
 .btn-gradient:hover::after {
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 .btn-ghost {
