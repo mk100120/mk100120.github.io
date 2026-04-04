@@ -20,7 +20,9 @@ const contacts = [
   { label: 'Location', value: contact.location, url: null },
 ];
 
-const heroWords = siteConfig.heroHeadline.split(' ');
+const greetingWords = siteConfig.heroGreeting.split(' ');
+const headlineWords = siteConfig.heroHeadline.split(' ');
+const heroWords = [...greetingWords, ...headlineWords];
 ---
 
 <BaseLayout title={siteConfig.title}>
@@ -34,8 +36,6 @@ const heroWords = siteConfig.heroHeadline.split(' ');
           Available for opportunities
         </span>
       </div>
-
-      <p class="hero-greeting scroll-fade-up scroll-fade-up-delay-100">{siteConfig.heroGreeting}</p>
 
       <h1 class="hero-title words-pull-up">
         {heroWords.map((word, i) => (
@@ -79,8 +79,8 @@ const heroWords = siteConfig.heroHeadline.split(' ');
               </button>
               <div class="qr-popover">
                 <div class="qr-popover-inner glass-strong">
-                  <div class="qr-placeholder">
-                    <img src={s.qrImage} alt={`${s.name} QR Code`} width="160" height="160" />
+                  <div class={`qr-placeholder qr-${s.qr}`}>
+                    <img src={s.qrImage} alt={`${s.name} QR Code`} loading="lazy" />
                   </div>
                   <span class="qr-label">{s.name === 'WeChat' ? 'Scan to add WeChat' : 'Scan to follow on Douyin'}</span>
                 </div>
@@ -482,64 +482,76 @@ const heroWords = siteConfig.heroHeadline.split(' ');
 
   .qr-popover {
     position: absolute;
-    bottom: calc(100% + 12px);
+    top: calc(100% + 14px);
     left: 50%;
-    transform: translateX(-50%) scale(0.9);
+    transform: translateX(-50%) translateY(-8px) scale(0.95);
     opacity: 0;
     pointer-events: none;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 50;
+    filter: blur(4px);
   }
 
   .social-icon-wrap:hover .qr-popover {
     opacity: 1;
-    transform: translateX(-50%) scale(1);
+    transform: translateX(-50%) translateY(0) scale(1);
     pointer-events: auto;
+    filter: blur(0);
   }
 
   .qr-popover-inner {
-    padding: 1rem;
+    padding: 0.75rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.5rem;
     white-space: nowrap;
     border-radius: var(--radius-xl) !important;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    box-shadow:
+      0 16px 48px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.06);
     position: relative;
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
   }
 
   .qr-popover-inner::after {
     content: '';
     position: absolute;
-    bottom: -6px;
+    top: -6px;
     left: 50%;
     transform: translateX(-50%) rotate(45deg);
     width: 12px;
     height: 12px;
     background: var(--glass-bg-strong);
-    border-right: 1px solid var(--glass-border);
-    border-bottom: 1px solid var(--glass-border);
+    border-left: 1px solid var(--glass-border);
+    border-top: 1px solid var(--glass-border);
   }
 
   .qr-placeholder {
     border-radius: var(--radius-md);
     overflow: hidden;
     line-height: 0;
+    background: white;
+    padding: 6px;
+    width: 220px;
+    height: 220px;
   }
 
   .qr-placeholder img {
     display: block;
-    width: 160px;
-    height: 160px;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    border-radius: var(--radius-md);
+    object-position: center 75%;
+    border-radius: 6px;
   }
 
   .qr-label {
     font-size: 0.72rem;
     color: var(--text-secondary);
     font-weight: 500;
+    padding: 0 0.25rem;
   }
 
   .hero {
@@ -550,7 +562,6 @@ const heroWords = siteConfig.heroHeadline.split(' ');
     padding-bottom: 4rem;
   }
   .hero-content { max-width: 780px; }
-  .hero-greeting { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
   .hero-title {
     font-size: clamp(3rem, 8vw, 5rem);
     font-weight: 900;

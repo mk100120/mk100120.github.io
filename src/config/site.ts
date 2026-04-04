@@ -1,8 +1,8 @@
 export const siteConfig = {
   name: 'Kenny',
-  role: 'Full Stack Developer',
+  role: 'Principal Backend Developer',
   brandText: 'Portfolio',
-  title: 'Kenny | Full Stack Developer | Portfolio',
+  title: 'Kenny | Principal Backend Developer | Portfolio',
   description: 'Personal knowledge base & portfolio',
   avatar: '/header.jpg',
   heroGreeting: "Hi, I'm",
