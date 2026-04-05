@@ -20,10 +20,9 @@ const contacts = [
   { label: 'Location', value: contact.location, url: null },
 ];
 
-const line1Words = ["Hi,", "I'm", " Engineering"];
-const line1GradientIndices = [0];
-const line2Words = ["Tomorrow's"];
-const line3Words = ["Digital", "Frontier"];
+const heroText = "Hi, I'm Engineering come from Tomorrow";
+const heroWords = heroText.split(' ');
+const gradientIndices = new Set([0, heroWords.length - 2, heroWords.length - 1]);
 ---
 
 <BaseLayout title={siteConfig.title}>
@@ -31,52 +30,36 @@ const line3Words = ["Digital", "Frontier"];
   <!-- ===== HOME ===== -->
   <section id="home" class="hero">
     <div class="container hero-content">
-      <div class="scroll-fade-up">
+      <div class="scroll-fade-up hero-center">
         <span class="available-badge">
           <span class="available-dot"></span>
           Available for opportunities
         </span>
       </div>
 
-      <h1 class="hero-title">
-        <span class="hero-line words-pull-up">
-          {line1Words.map((word, i) => (
-            <span class="word" style={`--delay: ${i * 0.08}s`}>
-              {line1GradientIndices.includes(i)
-                ? <span class="gradient-text">{word}</span>
-                : word}
-            </span>
-          ))}
-        </span>
-        <span class="hero-line hero-line-gradient words-pull-up">
-          {line2Words.map((word, i) => (
-            <span class="word" style={`--delay: ${(i + line1Words.length) * 0.08}s`}>
-              <span class="gradient-text">{word}</span>
-            </span>
-          ))}
-        </span>
-        <span class="hero-line hero-line-gradient words-pull-up">
-          {line3Words.map((word, i) => (
-            <span class="word" style={`--delay: ${(i + line1Words.length + line2Words.length) * 0.08}s`}>
-              <span class="gradient-text">{word}</span>
-            </span>
-          ))}
-        </span>
+      <h1 class="hero-title words-pull-up hero-center">
+        {heroWords.map((word, i) => (
+          <span class="word" style={`--delay: ${i * 0.08}s`}>
+            {gradientIndices.has(i)
+              ? <span class="gradient-text">{word}</span>
+              : word}
+          </span>
+        ))}
       </h1>
 
-      <h2 class="hero-role scroll-fade-up scroll-fade-up-delay-200">{siteConfig.heroRole}</h2>
+      <h2 class="hero-role scroll-fade-up scroll-fade-up-delay-200 hero-center">{siteConfig.heroRole}</h2>
 
-      <p class="hero-desc scroll-fade-up scroll-fade-up-delay-300">
+      <p class="hero-desc scroll-fade-up scroll-fade-up-delay-300 hero-center">
         {siteConfig.heroDesc}
       </p>
 
-      <div class="hero-pills scroll-fade-up scroll-fade-up-delay-300">
+      <div class="hero-pills scroll-fade-up scroll-fade-up-delay-300 hero-center">
         {siteConfig.heroPills.map((pill) => (
           <span class="hero-pill">{pill}</span>
         ))}
       </div>
 
-      <div class="hero-actions scroll-fade-up scroll-fade-up-delay-400">
+      <div class="hero-actions scroll-fade-up scroll-fade-up-delay-400 hero-center">
         <a href="#projects" class="btn-gradient">
           View My Work
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
@@ -419,44 +402,75 @@ const line3Words = ["Digital", "Frontier"];
   </section>
 
   <script>
-    const qrArea = document.getElementById('profile-qr-area');
+    const qrArea = document.getElementById('profile-qr-area') as HTMLElement | null;
     const qrImg = document.getElementById('profile-qr-img') as HTMLImageElement | null;
-    const qrText = document.getElementById('profile-qr-text');
+    const qrText = document.getElementById('profile-qr-text') as HTMLElement | null;
     let activeQr: string | null = null;
+    let hideTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function calcQrSize(): number {
+      if (!qrArea) return 0;
+      const card = qrArea.closest('.profile-card') as HTMLElement | null;
+      if (!card) return 0;
+      const cardRect = card.getBoundingClientRect();
+      const areaRect = qrArea.getBoundingClientRect();
+      const viewportBottom = window.innerHeight;
+      const spaceBelow = viewportBottom - areaRect.top - 40;
+      const maxByCard = 260;
+      const available = Math.min(spaceBelow, maxByCard);
+      return available;
+    }
+
+    function showQr(el: HTMLElement) {
+      if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+      const qr = el.dataset.qr!;
+      const space = calcQrSize();
+      if (space < 80) return;
+
+      activeQr = qr;
+      document.querySelectorAll('.profile-social-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+
+      const imgSize = Math.min(Math.max(space - 40, 80), 200);
+
+      if (qrImg) {
+        qrImg.src = el.dataset.qrImage || '';
+        qrImg.alt = el.dataset.qrLabel || 'QR Code';
+        const isDouyin = qr === 'douyin';
+        qrImg.style.objectPosition = isDouyin ? 'center 33%' : 'center 55%';
+        qrImg.style.transform = isDouyin ? 'scale(2)' : 'scale(1.15)';
+        qrImg.style.width = imgSize + 'px';
+        qrImg.style.height = imgSize + 'px';
+        qrImg.style.borderRadius = isDouyin ? '50%' : '6px';
+      }
+      if (qrText) qrText.textContent = el.dataset.qrLabel || '';
+      if (qrArea) {
+        qrArea.style.maxHeight = (imgSize + 50) + 'px';
+        qrArea.classList.add('open');
+      }
+    }
+
+    function hideQr() {
+      hideTimer = setTimeout(() => {
+        activeQr = null;
+        document.querySelectorAll('.profile-social-btn').forEach(b => b.classList.remove('active'));
+        if (qrArea) {
+          qrArea.classList.remove('open');
+          qrArea.style.maxHeight = '0';
+        }
+      }, 100);
+    }
 
     document.querySelectorAll('.profile-social-btn[data-qr]').forEach((btn) => {
       const el = btn as HTMLElement;
-      const show = () => {
-        const qr = el.dataset.qr!;
-        if (activeQr === qr) return;
-        activeQr = qr;
-        document.querySelectorAll('.profile-social-btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-        if (qrImg) {
-          qrImg.src = el.dataset.qrImage || '';
-          qrImg.alt = el.dataset.qrLabel || 'QR Code';
-          const isDouyin = qr === 'douyin';
-          qrImg.style.objectPosition = isDouyin ? 'center 28%' : 'center 55%';
-          qrImg.style.transform = isDouyin ? 'scale(1.5)' : 'scale(1.15)';
-        }
-        if (qrText) qrText.textContent = el.dataset.qrLabel || '';
-        qrArea?.classList.add('open');
-      };
-      const hide = () => {
-        activeQr = null;
-        el.classList.remove('active');
-        qrArea?.classList.remove('open');
-      };
-      el.addEventListener('mouseenter', show);
-      el.addEventListener('mouseleave', hide);
-      el.addEventListener('click', () => {
-        if (qrArea?.classList.contains('open') && activeQr === el.dataset.qr) {
-          hide();
-        } else {
-          show();
-        }
-      });
+      el.addEventListener('mouseenter', () => showQr(el));
+      el.addEventListener('mouseleave', hideQr);
     });
+
+    if (qrArea) {
+      qrArea.addEventListener('mouseenter', () => { if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; } });
+      qrArea.addEventListener('mouseleave', hideQr);
+    }
 
     const skillObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
@@ -548,34 +562,38 @@ const line3Words = ["Digital", "Frontier"];
     padding-top: calc(var(--nav-height) + 2rem);
     padding-bottom: 4rem;
   }
-  .hero-content { max-width: 780px; }
-  .hero-title {
-    margin: 0.75rem 0 1.5rem;
-    display: flex;
-    flex-direction: column;
+  .hero-content {
+    max-width: 780px;
+    margin: 0 auto;
+    text-align: center;
   }
-
-  .hero-line {
-    display: block;
+  .hero-center {
+    display: flex;
+    justify-content: center;
+  }
+  .hero-title {
     font-size: clamp(3rem, 8vw, 5rem);
     font-weight: 900;
     letter-spacing: -0.04em;
     line-height: 1.1;
-    color: var(--text-primary);
+    margin: 0.75rem 0 1.5rem;
+    text-align: center;
   }
   .hero-role {
     font-size: 1.4rem;
     font-weight: 600;
     color: var(--purple-400);
     margin-bottom: 1rem;
+    text-align: center;
   }
   .hero-desc {
     font-size: 1.1rem;
     color: var(--text-secondary);
     margin-bottom: 1.5rem;
     line-height: 1.7;
+    text-align: center;
   }
-  .hero-pills { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 2rem; }
+  .hero-pills { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 2rem; justify-content: center; }
   .hero-pill {
     padding: 0.35rem 0.9rem;
     font-size: 0.78rem;
@@ -585,7 +603,7 @@ const line3Words = ["Digital", "Frontier"];
     border-radius: var(--radius-full);
     color: var(--text-secondary);
   }
-  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; justify-content: center; }
 
   .scroll-hint {
     margin-top: 3.5rem;
@@ -800,47 +818,43 @@ const line3Words = ["Digital", "Frontier"];
   }
 
   .profile-qr-area {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
   }
 
   .profile-qr-area.open {
-    grid-template-rows: 1fr;
+    opacity: 1;
   }
 
   .profile-qr-inner {
-    min-height: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    overflow: hidden;
+    padding-top: 0.75rem;
   }
 
   .profile-qr-img {
-    margin-top: 1rem;
     background: white;
     border-radius: var(--radius-md);
-    padding: 6px;
+    padding: 5px;
     overflow: hidden;
+    line-height: 0;
   }
 
   .profile-qr-img img {
     display: block;
-    width: 220px;
-    height: 220px;
     object-fit: cover;
     border-radius: 6px;
   }
 
   .profile-qr-text {
     display: block;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     color: var(--text-tertiary);
     text-align: center;
-    margin-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    margin-top: 0.4rem;
   }
 
   .skills-section { margin-bottom: 3rem; }
