@@ -20,9 +20,12 @@ const contacts = [
   { label: 'Location', value: contact.location, url: null },
 ];
 
-const heroText = "Hi, I'm Engineering Come From Tomorrow";
-const heroWords = heroText.split(' ');
-const gradientIndices = new Set([0, heroWords.length - 2, heroWords.length - 1]);
+const heroLine1 = "Hi, I'm Engineering";
+const heroLine2 = "Come From Tomorrow";
+const line1Words = heroLine1.split(' ');
+const line2Words = heroLine2.split(' ');
+const line1Gradient = new Set([0]);
+const line2Gradient = new Set([line2Words.length - 2, line2Words.length - 1]);
 ---
 
 <BaseLayout title={siteConfig.title}>
@@ -37,14 +40,26 @@ const gradientIndices = new Set([0, heroWords.length - 2, heroWords.length - 1])
         </span>
       </div>
 
-      <h1 class="hero-title words-pull-up hero-center">
-        {heroWords.map((word, i) => (
-          <span class="word" style={`--delay: ${i * 0.08}s`}>
-            {gradientIndices.has(i)
-              ? <span class="gradient-text">{word}</span>
-              : word}
-          </span>
-        ))}
+      <h1 class="hero-title">
+        <span class="words-pull-up">
+          {line1Words.map((word, i) => (
+            <span class="word" style={`--delay: ${i * 0.08}s`}>
+              {line1Gradient.has(i)
+                ? <span class="gradient-text">{word}</span>
+                : word}
+            </span>
+          ))}
+        </span>
+        <br />
+        <span class="words-pull-up">
+          {line2Words.map((word, i) => (
+            <span class="word" style={`--delay: ${(i + line1Words.length) * 0.08}s`}>
+              {line2Gradient.has(i)
+                ? <span class="gradient-text">{word}</span>
+                : word}
+            </span>
+          ))}
+        </span>
       </h1>
 
       <h2 class="hero-role scroll-fade-up scroll-fade-up-delay-200 hero-center">{siteConfig.heroRole}</h2>
@@ -578,6 +593,10 @@ const gradientIndices = new Set([0, heroWords.length - 2, heroWords.length - 1])
     line-height: 1.1;
     margin: 0.75rem 0 1.5rem;
     text-align: center;
+    display: block;
+  }
+  .hero-title .words-pull-up {
+    display: inline;
   }
   .hero-role {
     font-size: 1.4rem;
